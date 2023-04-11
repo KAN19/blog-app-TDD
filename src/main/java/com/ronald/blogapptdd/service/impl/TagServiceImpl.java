@@ -32,7 +32,7 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
-    public List<Tag> getAllTag() {
+    public List<Tag> getAllTags() {
         return tagRepository.findAll();
     }
 
@@ -51,6 +51,14 @@ public class TagServiceImpl implements TagService {
         Tag updatedTag = compareAndUpdate(tag, updateTagRequest);
 
         return tagRepository.save(updatedTag);
+    }
+
+    @Override
+    public void deleteTag(Long tagId) {
+        tagRepository.findById(tagId)
+                .orElseThrow(() -> new TagNotFoundException("Tag not found with id: " + tagId));
+
+        tagRepository.deleteById(tagId);
     }
 
     private Tag compareAndUpdate(Tag tag, UpdateTagRequest updateTagRequest) {

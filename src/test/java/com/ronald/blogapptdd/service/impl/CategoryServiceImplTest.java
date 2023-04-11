@@ -119,25 +119,27 @@ class CategoryServiceImplTest {
                 .name("Javascript")
                 .description("Javascript is good!")
                 .build();
-        given(categoryRepository.findById(1L)).willReturn(Optional.of(oldCategory));
+        Long categoryId = 1L;
 
-
-        //when
         UpdateCategoryRequest request = UpdateCategoryRequest.builder()
                 .name("Java")
                 .description("Java ne")
                 .build();
-        Long categoryId = 1L;
+        Category updatedCategory = Category.builder()
+                .name(request.getName())
+                .description(request.getDescription())
+                .build();
 
-        underTest.updateCategory(categoryId, request);
+        given(categoryRepository.findById(1L)).willReturn(Optional.of(oldCategory));
+        given(categoryRepository.save(any(Category.class))).willReturn(updatedCategory);
+
+        //when
+        Category category = underTest.updateCategory(categoryId, request);
 
         //then
-        ArgumentCaptor<Category> categoryArgumentCaptor = ArgumentCaptor.forClass(Category.class);
-        verify(categoryRepository).save(categoryArgumentCaptor.capture());
-        Category capturedCategory = categoryArgumentCaptor.getValue();
-
-        assertThat(capturedCategory)
-                .isEqualToComparingOnlyGivenFields(request, "name", "description");
+        assertThat(updatedCategory).isEqualTo(category);
+        verify(categoryRepository).findById(any());
+        verify(categoryRepository).save(any(Category.class));
     }
 
     @Test

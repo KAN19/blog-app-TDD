@@ -9,18 +9,11 @@ import java.util.List;
 public interface TagService {
     Tag createTag(CreateTagRequest request);
 
-    List<Tag> getAllTag();
+    List<Tag> getAllTags();
 
     Tag getTagDetail(Long tagId);
 
     Tag updateTag(Long tagId, UpdateTagRequest updateTagRequest);
-    //Create tag
 
-    //Get tag by id
-
-    //Get all tags
-
-    //Update tag
-
-    //Delete tag
+    void deleteTag(Long tagId);
 }

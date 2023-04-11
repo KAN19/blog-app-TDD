@@ -2,11 +2,9 @@ package com.ronald.blogapptdd.service.impl;
 
 import com.ronald.blogapptdd.dto.request.CreateTagRequest;
 import com.ronald.blogapptdd.dto.request.UpdateTagRequest;
-import com.ronald.blogapptdd.entity.Category;
 import com.ronald.blogapptdd.entity.Tag;
 import com.ronald.blogapptdd.exception.TagNotFoundException;
 import com.ronald.blogapptdd.repository.TagRepository;
-import com.ronald.blogapptdd.service.TagService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,7 +19,6 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.assertj.core.api.Java6Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
@@ -79,7 +76,7 @@ class TagServiceImplTest {
         given(tagRepository.findAll()).willReturn(List.of(tag, tag2));
 
         //when
-        List<Tag> tags = underTest.getAllTag();
+        List<Tag> tags = underTest.getAllTags();
 
         //then
         assertThat(tags).hasSize(2);
@@ -137,6 +134,19 @@ class TagServiceImplTest {
         assertThatThrownBy(() -> underTest.updateTag(1L, UpdateTagRequest.builder().build()))
                 .isInstanceOf(TagNotFoundException.class)
                 .hasMessageContaining("Tag not found with id: " + 1L);
+    }
+
+    @Test
+    public void canDeleteTag() {
+        //given
+        Long tagId = 1L;
+        given(tagRepository.findById(tagId)).willReturn(Optional.ofNullable(tag));
+
+        //when
+        underTest.deleteTag(1L);
+
+        //then
+        verify(tagRepository).deleteById(1L);
     }
 
     @AfterEach
