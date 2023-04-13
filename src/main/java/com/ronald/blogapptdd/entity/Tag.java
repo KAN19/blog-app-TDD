@@ -1,5 +1,6 @@
 package com.ronald.blogapptdd.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.*;
@@ -29,6 +30,7 @@ public class Tag {
     private Timestamp createdAt;
 
     @OneToMany(mappedBy = "tag")
+    @JsonIgnore
     private List<PostTag> postTags;
 
     @PrePersist
