@@ -107,4 +107,23 @@ public class PostServiceImpl implements PostService {
         Post savedPost = postRepository.save(post);
         return PostMapperUtils.mapPostToPostResponseDTO(savedPost);
     }
+
+    @Override
+    public PostResponseDTO getPostDetail(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new PostNotFoundException("Post not found"));
+
+        return PostMapperUtils.mapPostToPostResponseDTO(post);
+    }
+
+    @Override
+    public void deletePost(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new PostNotFoundException("Post not found"));
+
+        postRepository.deleteById(postId);
+
+        List<PostTag> postTags = post.getPostTags();
+        postTagRepository.deleteAll(postTags);
+    }
 }

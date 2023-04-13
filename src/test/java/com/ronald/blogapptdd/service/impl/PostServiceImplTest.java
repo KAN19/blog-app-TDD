@@ -330,11 +330,16 @@ class PostServiceImplTest {
     public void updatePostWhenPostFound() {
         // given
         UpdatePostRequest request = UpdatePostRequest.builder()
-                .title("Test Post")
-                .content("This is a test post")
-                .categoryId(1L)
+                .title("Test Post Updated")
+                .content("This is a test post updated")
+                .categoryId(2L)
                 .tagIds(Arrays.asList(1L))
                 .build();
+        Category updatedCategory = Category.builder()
+                .id(2L)
+                .name("Test Category Updated")
+                .build();
+        given(categoryRepository.findById(2L)).willReturn(Optional.of(updatedCategory));
 
         Category category = Category.builder()
                 .id(1L)
@@ -375,22 +380,24 @@ class PostServiceImplTest {
 
         Post savedPost = Post.builder()
                 .id(1L)
-                .title("Test Post")
-                .content("This is a test post")
-                .category(category)
+                .title("Test Post Updated")
+                .content("This is a test post updated")
+                .category(updatedCategory)
                 .createdAt(new Timestamp(System.currentTimeMillis()))
                 .postTags(Arrays.asList(postTag))
                 .build();
         given(postRepository.save(any(Post.class))).willReturn(savedPost);
+
+        given(tagRepository.findByIdIn(List.of(1L))).willReturn(Arrays.asList(tag));
 
         // when
         PostResponseDTO updatedPost = underTest.updatePost(1L, request);
 
         // then
         assertThat(updatedPost).isNotNull();
-        assertThat(updatedPost.getTitle()).isEqualTo("Test Post");
-        assertThat(updatedPost.getContent()).isEqualTo("This is a test post");
-        assertThat(updatedPost.getCategory()).isEqualTo(category);
+        assertThat(updatedPost.getTitle()).isEqualTo("Test Post Updated");
+        assertThat(updatedPost.getContent()).isEqualTo("This is a test post updated");
+        assertThat(updatedPost.getCategory()).isEqualTo(updatedCategory);
         assertThat(updatedPost.getTags()).hasSize(1);
         assertThat(updatedPost.getTags().get(0).getName()).isEqualTo("Test Tag");
 
@@ -418,6 +425,128 @@ class PostServiceImplTest {
 
         verify(postRepository, times(1)).findById(1L);
         verify(postRepository, times(0)).save(any(Post.class));
+    }
+
+    @Test
+    public void getPostDetail() {
+        // given
+        Category category = Category.builder()
+                .id(1L)
+                .name("Test Category")
+                .build();
+
+        Post post = Post.builder()
+                .id(1L)
+                .title("Test Post")
+                .content("This is a test post")
+                .category(category)
+                .createdAt(new Timestamp(System.currentTimeMillis()))
+                .postTags(new ArrayList<>())
+                .build();
+
+        Tag tag = Tag.builder()
+                .id(1L)
+                .name("Test Tag")
+                .build();
+        Tag tag2 = Tag.builder()
+                .id(2L)
+                .name("Test Tag 2")
+                .build();
+        PostTag postTag = PostTag.builder()
+                .id(new PostTagKey(1L, 1L))
+                .post(post)
+                .tag(tag)
+                .build();
+        PostTag postTag2 = PostTag.builder()
+                .id(new PostTagKey(1L, 2L))
+                .post(post)
+                .tag(tag2)
+                .build();
+        post.setPostTags(Arrays.asList(postTag, postTag2));
+
+        given(postRepository.findById(1L)).willReturn(Optional.of(post));
+
+        // when
+        PostResponseDTO postDetail = underTest.getPostDetail(1L);
+
+        // then
+        assertThat(postDetail).isNotNull();
+        assertThat(postDetail.getTitle()).isEqualTo("Test Post");
+        assertThat(postDetail.getContent()).isEqualTo("This is a test post");
+        assertThat(postDetail.getCategory()).isEqualTo(category);
+        assertThat(postDetail.getTags()).hasSize(2);
+        assertThat(postDetail.getTags().get(0).getName()).isEqualTo("Test Tag");
+        assertThat(postDetail.getTags().get(1).getName()).isEqualTo("Test Tag 2");
+
+        verify(postRepository, times(1)).findById(1L);
+    }
+
+    @Test
+    public void getPostDetailNotFoundPostException() {
+        // given
+        given(postRepository.findById(1L)).willReturn(Optional.empty());
+
+        // when
+        // then
+        assertThatThrownBy(() -> underTest.getPostDetail(1L))
+                .isInstanceOf(PostNotFoundException.class)
+                .hasMessage("Post not found");
+
+        verify(postRepository, times(1)).findById(1L);
+    }
+
+    @Test
+    public void deletePost() {
+        // given
+        Category category = Category.builder()
+                .id(1L)
+                .name("Test Category")
+                .description("Test Category Description")
+                .createdAt(new Timestamp(System.currentTimeMillis()))
+                .build();
+
+        Tag tag = Tag.builder()
+                .id(1L)
+                .name("Test Tag")
+                .description("Test Tag Description")
+                .createdAt(new Timestamp(System.currentTimeMillis()))
+                .build();
+        Tag tag2 = Tag.builder()
+                .id(2L)
+                .name("Test Tag 2")
+                .description("Test Tag 2 Description")
+                .createdAt(new Timestamp(System.currentTimeMillis()))
+                .build();
+
+        Post post = Post.builder()
+                .id(1L)
+                .title("Test Post")
+                .content("This is a test post")
+                .category(category)
+                .createdAt(new Timestamp(System.currentTimeMillis()))
+                .postTags(new ArrayList<>())
+                .build();
+
+        PostTag postTag = PostTag.builder()
+                .id(new PostTagKey(1L, 1L))
+                .post(post)
+                .tag(tag)
+                .build();
+        PostTag postTag2 = PostTag.builder()
+                .id(new PostTagKey(1L, 2L))
+                .post(post)
+                .tag(tag2)
+                .build();
+        post.setPostTags(Arrays.asList(postTag, postTag2));
+
+        given(postRepository.findById(1L)).willReturn(Optional.of(post));
+
+        // when
+        underTest.deletePost(1L);
+
+        // then
+        verify(postRepository, times(1)).deleteById(1L);
+        verify(postTagRepository, times(1)).deleteAll(post.getPostTags());
     }
 
     @AfterEach
