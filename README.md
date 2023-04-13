@@ -20,8 +20,6 @@ The application is a simple blog system. It has 3 main entities: Category, Post 
 - Delete a Post `DELETE /posts/{id}` (2.3)
 - Get a Post `GET /posts/{id}` (2.4)
 - Get all Posts `GET /posts` (2.5)
-- Get all Posts by Category `GET /posts?category={id}` (2.6)
-- Get all Posts by Tag `GET /posts?tag={id}` (2.7)
 
 #### Tag
 - Create a Tag `POST /tags` (3.1)
